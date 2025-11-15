@@ -9,9 +9,16 @@
     "dev": "npm-run-all --parallel dev:vite watch:routes",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "preview": "vite preview",
     "release:dev": "standard-version --prerelease dev",
-    "release:prod": "standard-version"
+    "release:prod": "standard-version",
+    "parse": "node scripts/i18n/i18n-parser.js",
+    "parse:verbose": "node scripts/i18n/i18n-parser.js --verbose",
+    "parse:sort": "node scripts/i18n/i18n-parser.js --sort",
+    "parse:clean": "node scripts/i18n/i18n-parser.js --clean",
+    "parse:all": "node scripts/i18n/i18n-parser.js --verbose --sort --clean"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.16",

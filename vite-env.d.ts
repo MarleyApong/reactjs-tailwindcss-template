@@ -1,5 +1,15 @@
 /// <reference types="vite/client" />
 
+interface ImportMetaEnv {
+  readonly MODE: string
+  readonly VITE_API_URL?: string
+  // Add more env variables as needed
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+
 declare module "*.avif"
 declare module "*.bmp"
 declare module "*.gif"
