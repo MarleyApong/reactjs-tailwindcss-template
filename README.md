@@ -38,9 +38,38 @@ Template React moderne avec architecture feature-based, système de routage auto
 
 ## 🚀 Installation
 
+### Méthode 1 : Utiliser comme GitHub Template (Recommandé)
+
+1. Cliquez sur "Use this template" sur [GitHub](https://github.com/MarleyApong/reactjs-tailwindcss-template)
+2. Créez votre nouveau repository
+3. Clonez votre nouveau repository et installez :
+
+```bash
+git clone https://github.com/votre-username/votre-projet
+cd votre-projet
+npm install
+npm run dev
+```
+
+### Méthode 2 : Clonage rapide avec degit
+
+```bash
+# Créer un nouveau projet à partir du template
+npx degit MarleyApong/reactjs-tailwindcss-template mon-projet
+cd mon-projet
+
+# Installer les dépendances
+npm install
+
+# Lancer le dev server
+npm run dev
+```
+
+### Méthode 3 : Clonage Git classique
+
 ```bash
 # Cloner le template
-git clone [votre-repo]
+git clone https://github.com/MarleyApong/reactjs-tailwindcss-template
 cd reactjs-tailwindcss-template
 
 # Nettoyer et installer (première fois)
@@ -212,6 +241,21 @@ Visitez `/docs` dans l'application pour la documentation complète :
 3. Ne pas importer entre features (uniquement depuis shared)
 4. Lancer `npm run parse:all` régulièrement
 5. Respecter TypeScript strict
+
+## 🔗 Repository
+
+- **GitHub** : [https://github.com/MarleyApong/reactjs-tailwindcss-template](https://github.com/MarleyApong/reactjs-tailwindcss-template)
+- **Issues** : [Signaler un bug](https://github.com/MarleyApong/reactjs-tailwindcss-template/issues)
+
+### Utiliser ce template pour vos projets
+
+Ce repository est configuré comme template GitHub. Pour l'activer :
+
+1. Allez dans **Settings** du repository
+2. Cochez **Template repository** dans la section General
+3. Vos utilisateurs pourront cliquer sur **"Use this template"** pour créer leur projet
+
+Ou utilisez directement `npx degit MarleyApong/reactjs-tailwindcss-template` pour créer un nouveau projet en une commande !
 
 ## 📝 License
 
