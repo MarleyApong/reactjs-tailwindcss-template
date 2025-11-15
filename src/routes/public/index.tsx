@@ -10,8 +10,8 @@ export const publicRoute = createRoute({
 })
 
 export const homeRoute = createRoute({
-  getParentRoute: () => publicRoute,
-  path: '/home',
+  getParentRoute: () => rootRoute,
+  path: '/',
   component: Home,
 })
 

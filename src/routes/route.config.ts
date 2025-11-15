@@ -33,7 +33,7 @@ export const routeConfig: Record<string, { path?: string; override?: boolean }> 
   // ------------------------------
   // Routes publiques (basePath: "/")
   // ------------------------------
-  "public/home": { path: "/", override: false },
+  "public/home": { path: "/", override: true },
 
   // ------------------------------
   // Routes d'authentification (basePath: "/auth")
