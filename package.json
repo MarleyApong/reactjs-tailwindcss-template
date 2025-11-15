@@ -1,7 +1,7 @@
 {
   "name": "reactjs-tailwindcss-template",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev:vite": "vite",
@@ -9,7 +9,9 @@
     "dev": "npm-run-all --parallel dev:vite watch:routes",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "release:dev": "standard-version --prerelease dev",
+    "release:prod": "standard-version"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.16",
@@ -34,6 +36,7 @@
     "globals": "^16.4.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.6.2",
+    "standard-version": "^9.5.0",
     "tsx": "^4.20.6",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.45.0",
