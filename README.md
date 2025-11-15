@@ -1,75 +1,218 @@
-# React + TypeScript + Vite
+# 🚀 React + TypeScript + Vite Template
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Template React moderne avec architecture feature-based, système de routage automatique et internationalisation type-safe.
 
-Currently, two official plugins are available:
+## ✨ Caractéristiques
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🏗️ Architecture
+- **Feature-based architecture** : Organisation par domaine métier (`features/`, `shared/`)
+- **Type-safe** : TypeScript strict avec autocomplétion complète
+- **Composants réutilisables** : Séparation claire entre features et shared
+- **Bonnes pratiques** : Structure scalable pour projets d'entreprise
 
-## React Compiler
+### 🚦 Routage
+- **TanStack Router** : Routing type-safe et performant
+- **Génération automatique** : Routes créées depuis la structure de fichiers
+- **Configuration flexible** : Personnalisation via `route.config.ts`
+- **Hot reload** : Watcher en temps réel pour les changements de routes
+- **Groupes de routes** : `public/`, `auth/`, `protected/` avec basePaths configurables
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+### 🌍 Internationalisation
+- **Sans dépendance externe** : Système i18n custom 100% natif
+- **Type-safe** : Autocomplétion des clés de traduction
+- **Auto-détection** : Scan automatique des clés utilisées avec `t()`
+- **Multi-langues** : Support FR/EN avec possibilité d'extension
+- **Génération automatique** : Types TypeScript générés depuis les traductions
 
-Note: This will impact Vite dev & build performances.
+### ⚡ Performance
+- **Vite** : Build ultra-rapide avec Rolldown
+- **React 19** : Dernière version avec React Compiler activé
+- **TailwindCSS 4** : Styling moderne et optimisé
+- **Code splitting** : Optimisation automatique du bundle
 
-## Expanding the ESLint configuration
+### 📚 Documentation
+- **Documentation intégrée** : Page `/docs` avec navigation sidebar
+- **Guides complets** : Architecture, Routing, i18n, Getting Started
+- **Dark mode** : Support complet light/dark
+- **Responsive** : Interface adaptée mobile/desktop
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Installation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Cloner le template
+git clone [votre-repo]
+cd reactjs-tailwindcss-template
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Nettoyer et installer (première fois)
+npm run clean:install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Ou installation simple
+npm install
+
+# Lancer le dev server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Le serveur démarre sur `http://localhost:5173` avec hot reload activé.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 📜 Scripts disponibles
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Développement
+```bash
+npm run dev              # Lance Vite + watcher de routes en parallèle
+npm run dev:vite         # Lance uniquement Vite
+npm run watch:routes     # Lance uniquement le watcher de routes
 ```
+
+### Build & Preview
+```bash
+npm run build            # Build de production avec TypeScript check
+npm run preview          # Prévisualiser le build de production
+```
+
+### Qualité du code
+```bash
+npm run lint             # Vérifier le code avec ESLint
+npm run format           # Formater le code avec Prettier
+npm run format:check     # Vérifier le formatage sans modifier
+```
+
+### Internationalisation
+```bash
+npm run parse            # Scan basique des traductions
+npm run parse:verbose    # Scan avec détails
+npm run parse:sort       # Trier les clés alphabétiquement
+npm run parse:clean      # Nettoyer les clés inutilisées
+npm run parse:all        # Toutes les options combinées (recommandé)
+```
+
+### Nettoyage
+```bash
+npm run clean            # Supprimer node_modules et fichiers build
+npm run clean:install    # Nettoyer + réinstaller les dépendances
+```
+
+### Release
+```bash
+npm run release:dev      # Release en développement (prerelease)
+npm run release:prod     # Release en production
+```
+
+## 📁 Structure du projet
+
+```
+src/
+├── features/              # Features métier (domaines)
+│   └── docs/             # Feature documentation
+│       ├── components/   # Composants de la feature
+│       └── index.ts      # Exports publics
+│
+├── routes/               # Routes de l'application
+│   ├── public/          # Routes publiques (/)
+│   │   ├── home.tsx     # Page d'accueil
+│   │   ├── docs.tsx     # Documentation
+│   │   └── index.tsx    # Auto-généré
+│   ├── auth/            # Routes auth (/auth)
+│   │   ├── login.tsx    # Connexion
+│   │   ├── register.tsx # Inscription
+│   │   └── index.tsx    # Auto-généré
+│   ├── protected/       # Routes protégées (/app)
+│   │   ├── dashboard.tsx
+│   │   └── index.tsx    # Auto-généré
+│   ├── root.tsx         # Layout racine
+│   └── route.config.ts  # Configuration des routes
+│
+├── shared/              # Ressources partagées
+│   └── i18n/           # Système d'internationalisation
+│       ├── locales/    # Traductions (fr.ts, en.ts)
+│       ├── index.tsx   # Provider + hook
+│       ├── index.ts    # Exports publics
+│       └── types.ts    # Types auto-générés
+│
+├── components/         # Composants de démo (à supprimer)
+├── assets/            # Images, fonts, etc.
+├── App.tsx            # Composant App principal
+├── main.tsx           # Point d'entrée
+└── router.ts          # Configuration du router
+```
+
+## 🎯 Utilisation
+
+### Créer une nouvelle route
+
+```tsx
+// src/routes/public/contact.tsx
+export default function Contact() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1>Contactez-nous</h1>
+    </div>
+  )
+}
+// → Accessible sur /contact automatiquement !
+```
+
+### Utiliser les traductions
+
+```tsx
+import { useTranslation } from "@/shared/i18n/index.tsx"
+
+export default function MyComponent() {
+  const { t, changeLanguage, currentLanguage } = useTranslation()
+  
+  return (
+    <div>
+      <h1>{t("home.title")}</h1>
+      <button onClick={() => changeLanguage("en")}>
+        English
+      </button>
+    </div>
+  )
+}
+
+// Puis générer les types
+// npm run parse:all
+```
+
+### Créer une feature
+
+```
+src/features/products/
+├── components/
+│   ├── ProductCard.tsx
+│   └── ProductList.tsx
+├── hooks/
+│   └── useProducts.ts
+├── types/
+│   └── product.types.ts
+└── index.ts  # Exports publics uniquement
+```
+
+## 🛠️ Technologies
+
+- **React 19.1** - Bibliothèque UI avec React Compiler
+- **TypeScript 5.9** - Typage statique
+- **Vite (Rolldown)** - Build tool ultra-rapide
+- **TanStack Router 1.134** - Routing type-safe
+- **TailwindCSS 4.1** - Framework CSS utility-first
+- **ESLint + Prettier** - Qualité et formatage du code
+
+## 📖 Documentation
+
+Visitez `/docs` dans l'application pour la documentation complète :
+- **Architecture** : Structure du projet et bonnes pratiques
+- **Routing** : Système de routage automatique
+- **i18n** : Internationalisation type-safe
+- **Getting Started** : Guide de démarrage rapide
+
+## 🤝 Contribution
+
+1. Utiliser `shared/` pour les composants réutilisables
+2. Créer des `features/` pour les domaines métier
+3. Ne pas importer entre features (uniquement depuis shared)
+4. Lancer `npm run parse:all` régulièrement
+5. Respecter TypeScript strict
+
+## 📝 License
+
+MIT
