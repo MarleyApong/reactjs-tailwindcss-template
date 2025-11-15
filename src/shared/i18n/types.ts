@@ -1,7 +1,63 @@
 // Types générés automatiquement - NE PAS MODIFIER MANUELLEMENT
-// Généré le 15/11/2025 14:41:57
+// Généré le 15/11/2025 15:19:05
 export interface TranslationKeys {
+  'auth.backHome': string;
+  'auth.login.email': string;
+  'auth.login.emailPlaceholder': string;
+  'auth.login.forgot': string;
+  'auth.login.github': string;
+  'auth.login.google': string;
+  'auth.login.noAccount': string;
+  'auth.login.or': string;
+  'auth.login.password': string;
+  'auth.login.passwordPlaceholder': string;
+  'auth.login.remember': string;
+  'auth.login.signUp': string;
+  'auth.login.submit': string;
+  'auth.login.subtitle': string;
+  'auth.login.title': string;
+  'auth.register.confirmPassword': string;
+  'auth.register.confirmPasswordPlaceholder': string;
+  'auth.register.email': string;
+  'auth.register.emailPlaceholder': string;
+  'auth.register.github': string;
+  'auth.register.google': string;
+  'auth.register.hasAccount': string;
+  'auth.register.name': string;
+  'auth.register.namePlaceholder': string;
+  'auth.register.or': string;
+  'auth.register.password': string;
+  'auth.register.passwordPlaceholder': string;
+  'auth.register.signIn': string;
+  'auth.register.submit': string;
+  'auth.register.subtitle': string;
+  'auth.register.terms': string;
+  'auth.register.termsLink': string;
+  'auth.register.title': string;
   'dashboard.title': string;
+  'home.cta.login': string;
+  'home.cta.start': string;
+  'home.features.i18n.desc': string;
+  'home.features.i18n.title': string;
+  'home.features.ready.desc': string;
+  'home.features.ready.title': string;
+  'home.features.router.desc': string;
+  'home.features.router.title': string;
+  'home.features.tailwind.desc': string;
+  'home.features.tailwind.title': string;
+  'home.features.title': string;
+  'home.features.typescript.desc': string;
+  'home.features.typescript.title': string;
+  'home.features.vite.desc': string;
+  'home.features.vite.title': string;
+  'home.footer.by': string;
+  'home.footer.made': string;
+  'home.footer.ready': string;
+  'home.hero.badge': string;
+  'home.hero.description': string;
+  'home.hero.subtitle': string;
+  'home.hero.title': string;
+  'home.title': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

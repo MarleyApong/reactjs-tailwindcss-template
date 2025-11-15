@@ -2,6 +2,7 @@
 
 import { createRoute } from '@tanstack/react-router'
 import { rootRoute } from '@/routes/root'
+import Docs from './docs'
 import Home from './home'
 
 export const publicRoute = createRoute({
@@ -9,6 +10,11 @@ export const publicRoute = createRoute({
   id: '_public',
 })
 
+export const docsRoute = createRoute({
+  getParentRoute: () => publicRoute,
+  path: '/docs',
+  component: Docs,
+})
 export const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',

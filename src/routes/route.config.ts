@@ -53,4 +53,9 @@ export const routeConfig: Record<string, { path?: string; override?: boolean }> 
   // Exemples d'overrides personnalisés :
   // "protected/settings": { path: "mon-compte/parametres", override: true }, // → /app/mon-compte/parametres
   // "public/about": { path: "/a-propos", override: true }, // → /a-propos (absolu)
+
+  // 🆕 Nouvelles routes public
+
+  // 🆕 Nouvelles routes public
+  "public/docs": { path: "docs", override: false }, // 🆕 Auto-ajouté
 }

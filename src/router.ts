@@ -1,11 +1,11 @@
 import { createRouter } from '@tanstack/react-router'
 import { rootRoute } from '@/routes/root'
-import { publicRoute, homeRoute } from '@/routes/public'
+import { publicRoute, docsRoute, homeRoute } from '@/routes/public'
 import { authRoute, helloRoute, loginRoute, registerRoute } from '@/routes/auth'
 import { protectedRoute, dashboardRoute, meRoute, profileRoute, settingsRoute } from '@/routes/protected'
 
 export const routeTree = rootRoute.addChildren([
-  publicRoute.addChildren([homeRoute]),
+  publicRoute.addChildren([docsRoute, homeRoute]),
   authRoute.addChildren([helloRoute, loginRoute, registerRoute]),
   protectedRoute.addChildren([dashboardRoute, meRoute, profileRoute, settingsRoute])
 ])
