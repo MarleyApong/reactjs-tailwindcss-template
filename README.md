@@ -83,12 +83,6 @@ npm run parse:clean      # Nettoyer les clés inutilisées
 npm run parse:all        # Toutes les options combinées (recommandé)
 ```
 
-### Nettoyage
-```bash
-npm run clean            # Supprimer node_modules et fichiers build
-npm run clean:install    # Nettoyer + réinstaller les dépendances
-```
-
 ### Release
 ```bash
 npm run release:dev      # Release en développement (prerelease)
