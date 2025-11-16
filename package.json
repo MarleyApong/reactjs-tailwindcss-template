@@ -18,7 +18,7 @@
     "parse:verbose": "node scripts/i18n/i18n-parser.js --verbose",
     "parse:sort": "node scripts/i18n/i18n-parser.js --sort",
     "parse:clean": "node scripts/i18n/i18n-parser.js --clean",
-    "parse:all": "node scripts/i18n/i18n-parser.js --verbose --sort --clean",
+    "parse:all": "node scripts/i18n/i18n-parser.js --verbose --sort --clean"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.16",

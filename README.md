@@ -40,11 +40,8 @@ Template React moderne avec architecture feature-based, système de routage auto
 
 ```bash
 # Cloner le template
-git clone [votre-repo]
+git clone https://github.com/MarleyApong/reactjs-tailwindcss-template.git
 cd reactjs-tailwindcss-template
-
-# Nettoyer et installer (première fois)
-npm run clean:install
 
 # Ou installation simple
 npm install
@@ -53,7 +50,7 @@ npm install
 npm run dev
 ```
 
-Le serveur démarre sur `http://localhost:5173` avec hot reload activé.
+Le serveur démarre sur `http://localhost:5179` avec hot reload activé.
 
 ## 📜 Scripts disponibles
 
