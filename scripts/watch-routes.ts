@@ -70,7 +70,11 @@ function loadRouteConfig() {
 // 🛠️ UTILITAIRES
 // ------------------------------------------------------------
 function pascalCase(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1)
+  // Nettoyer et convertir en PascalCase
+  // Gère les tirets, underscores, espaces et points
+  return str
+    .replace(/[.\-_\s]+(.)?/g, (_, char) => char ? char.toUpperCase() : '')
+    .replace(/^(.)/, (char) => char.toUpperCase())
 }
 
 function getAllFiles(dir: string): string[] {
