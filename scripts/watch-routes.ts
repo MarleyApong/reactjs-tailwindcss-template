@@ -77,6 +77,12 @@ function pascalCase(str: string) {
     .replace(/^(.)/, (char) => char.toUpperCase())
 }
 
+function camelCase(str: string) {
+  // Nettoyer et convertir en camelCase (première lettre en minuscule)
+  const pascal = pascalCase(str)
+  return pascal.charAt(0).toLowerCase() + pascal.slice(1)
+}
+
 function getAllFiles(dir: string): string[] {
   let results: string[] = []
   if (!fs.existsSync(dir)) return results
@@ -294,7 +300,7 @@ function generateIndexFile(group: string, basePath: string) {
     const rel = path.relative(dir, file).replace(/\\/g, "/")
     const base = path.basename(file, ".tsx")
     const compName = pascalCase(base.replace("$", "Param"))
-    const routeVar = `${base.replace("$", "Param")}Route`
+    const routeVar = `${camelCase(base.replace("$", "Param"))}Route`
     const importPath = "./" + rel.replace(".tsx", "")
     imports.push(`import ${compName} from '${importPath}'`)
 
@@ -397,7 +403,7 @@ function generateRouterFile() {
     
     files.forEach((f) => {
       const base = path.basename(f, ".tsx")
-      const routeVar = `${base.replace("$", "Param")}Route`
+      const routeVar = `${camelCase(base.replace("$", "Param"))}Route`
       const configKey = `${group}/${base}`
       
       // Vérifier si c'est une route absolue
@@ -413,7 +419,7 @@ function generateRouterFile() {
 
     const allRouteVars = files.map((f) => {
       const name = path.basename(f, ".tsx")
-      return `${name.replace("$", "Param")}Route`
+      return `${camelCase(name.replace("$", "Param"))}Route`
     })
 
     imports.push(`import { ${group}Route, ${allRouteVars.join(", ")} } from '@/routes/${group}'`)
