@@ -69,17 +69,22 @@ function loadRouteConfig() {
 // ------------------------------------------------------------
 // 🛠️ UTILITAIRES
 // ------------------------------------------------------------
-function pascalCase(str: string) {
-  // Nettoyer et convertir en PascalCase
-  // Gère les tirets, underscores, espaces et points
+function pascalCase(str: string): string {
+  // Convertir un nom de fichier en PascalCase pour le nom de composant
+  // Règle simple : séparer sur les délimiteurs, puis PascalCase chaque mot
+  
+  // Séparer sur les délimiteurs courants : -, _, ., espaces
   return str
-    .replace(/[.\-_\s]+(.)?/g, (_, char) => char ? char.toUpperCase() : '')
-    .replace(/^(.)/, (char) => char.toUpperCase())
+    .split(/[-_.\s]+/)
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('')
 }
 
-function camelCase(str: string) {
-  // Nettoyer et convertir en camelCase (première lettre en minuscule)
+function camelCase(str: string): string {
+  // Convertir en camelCase (première lettre en minuscule)
   const pascal = pascalCase(str)
+  if (!pascal) return ''
   return pascal.charAt(0).toLowerCase() + pascal.slice(1)
 }
 
