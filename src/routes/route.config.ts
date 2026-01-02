@@ -39,7 +39,7 @@ export const routeConfig: Record<string, { path?: string; override?: boolean }> 
   // Routes d'authentification (basePath: "/auth")
   // ------------------------------
   "auth/hello": { path: "hello", override: false },
-  "auth/login": { path: "mui", override: true },
+  "auth/login": { path: "/mui", override: true },
   "auth/register": { path: "register", override: false },
 
   // ------------------------------

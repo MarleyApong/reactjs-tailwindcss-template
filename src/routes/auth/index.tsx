@@ -17,8 +17,8 @@ export const helloRoute = createRoute({
   component: Hello,
 })
 export const loginRoute = createRoute({
-  getParentRoute: () => authRoute,
-  path: 'mui',
+  getParentRoute: () => rootRoute,
+  path: '/mui',
   component: Login,
 })
 export const registerRoute = createRoute({

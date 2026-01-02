@@ -498,8 +498,9 @@ function rebuildAll() {
 console.log("👀 Watching routes...")
 rebuildAll()
 
+// Watcher pour les fichiers de routes
 chokidar.watch(routesRoot, { ignoreInitial: true }).on("all", (event: string, filePath: string) => {
-  // Ignorer les changements sur route.config.ts lui-même
+  // Ignorer les changements sur route.config.ts (géré par un autre watcher)
   if (filePath.includes("route.config.ts")) return
   if (!filePath.endsWith(".tsx")) return
 
@@ -511,4 +512,10 @@ chokidar.watch(routesRoot, { ignoreInitial: true }).on("all", (event: string, fi
     console.log(`➖ Removed: ${filePath}`)
     rebuildAll()
   }
+})
+
+// Watcher spécifique pour route.config.ts
+chokidar.watch(routeConfigFile, { ignoreInitial: true }).on("change", () => {
+  console.log("🔄 route.config.ts modified, regenerating routes...")
+  rebuildAll()
 })

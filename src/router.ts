@@ -6,8 +6,9 @@ import { protectedRoute, dashboardRoute, meRoute, profileRoute, settingsRoute } 
 
 export const routeTree = rootRoute.addChildren([
   publicRoute.addChildren([docsRoute, homeRoute]),
-  authRoute.addChildren([helloRoute, loginRoute, registerRoute]),
-  protectedRoute.addChildren([dashboardRoute, meRoute, profileRoute, settingsRoute])
+  authRoute.addChildren([helloRoute, registerRoute]),
+  protectedRoute.addChildren([dashboardRoute, meRoute, profileRoute, settingsRoute]),
+  loginRoute
 ])
 
 export const router = createRouter({ routeTree })
