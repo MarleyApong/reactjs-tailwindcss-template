@@ -2,44 +2,31 @@
 
 ## 📖 Vue d'ensemble
 
-Le fichier `router.ts` est le **point d'entrée du routing** de l'application. Il est **auto-généré** par `watch-routes.ts` et contient l'arbre complet des routes TanStack Router.
+Le fichier `src/router.ts` est le **point d'entrée du routing** de l'application. Il est **auto-généré** par `watch-routes.ts` et contient l'arbre complet des routes TanStack Router.
 
 ## 🎯 Objectif
 
-Créer une instance de router avec :
+Créer l'arbre de routes avec :
 - Toutes les routes importées depuis les groupes (`public`, `auth`, `protected`)
-- L'arbre de routes structuré (routes absolues + routes de groupe)
-- La configuration TanStack Router pour l'application
+- La structure hiérarchique des routes
+- L'export du `routeTree` utilisé par `App.tsx`
 
 ## 📝 Structure du fichier
 
 ```typescript
-// 1️⃣ Imports des routes de groupe
-import { publicRoute, publicRoutes } from "./routes/public"
-import { authRoute, authRoutes } from "./routes/auth"
-import { protectedRoute, protectedRoutes } from "./routes/protected"
+// 1️⃣ Imports des routes depuis les fichiers _root.tsx
+import { publicRoute, publicHomeRoute, publicDocsRoute } from '@/routes/public/_root'
+import { authRoute, authLoginRoute } from '@/routes/auth/_root'
+import { protectedRoute, protectedDashboardRoute } from '@/routes/protected/_root'
 
-// 2️⃣ Route racine
-const rootRoute = createRootRoute({
-  component: () => <Outlet />,
-})
-
-// 3️⃣ Séparation routes absolues / routes de groupe
-const absoluteRoutes: RouteConfig[] = [
-  // Routes avec path absolu (override: true)
-]
-
-const groupRoutes: RouteConfig[] = [
-  // Routes attachées aux groupes
-]
-
-// 4️⃣ Construction de l'arbre
-const routeTree = rootRoute.addChildren([
-  ...groupRoutes,
-  ...absoluteRoutes,
+// 2️⃣ Construction de l'arbre
+export const routeTree = rootRoute.addChildren([
+  publicRoute.addChildren([publicHomeRoute, publicDocsRoute]),
+  authRoute.addChildren([authLoginRoute]),
+  protectedRoute.addChildren([protectedDashboardRoute]),
 ])
 
-// 5️⃣ Export du router
+// 3️⃣ Export du router
 export const router = createRouter({ routeTree })
 ```
 
@@ -47,12 +34,10 @@ export const router = createRouter({ routeTree })
 
 ### 1. rootRoute
 
-La **route racine** de l'application.
+La **route racine** de l'application (définie dans `src/routes/root.tsx`).
 
 ```typescript
-const rootRoute = createRootRoute({
-  component: () => <Outlet />,
-})
+import { rootRoute } from '@/routes/root'
 ```
 
 **Rôle** :
@@ -62,89 +47,51 @@ const rootRoute = createRootRoute({
 
 ### 2. Routes de groupe
 
-Importées depuis `src/routes/{group}/index.tsx` :
+Importées depuis `src/routes/{group}/_root.tsx` (fichiers générés automatiquement) :
 
 ```typescript
-import { publicRoute, publicRoutes } from "./routes/public"
-import { authRoute, authRoutes } from "./routes/auth"
-import { protectedRoute, protectedRoutes } from "./routes/protected"
+import { publicRoute, publicHomeRoute, publicDocsRoute } from '@/routes/public/_root'
+import { authRoute, authLoginRoute, authRegisterRoute } from '@/routes/auth/_root'
+import { protectedRoute, protectedDashboardRoute, protectedSettingsRoute } from '@/routes/protected/_root'
 ```
 
-**Structure de chaque import** :
-- `publicRoute` : Route parent du groupe (ex: `path: "/"`)
-- `publicRoutes` : Liste des routes enfants (ex: `home`, `about`)
+**Nommage des variables** :
+- Route groupe : `{group}Route` (ex: `publicRoute`, `authRoute`)
+- Routes enfants : `{group}{File}Route` (ex: `publicHomeRoute`, `authLoginRoute`)
 
-### 3. Séparation des routes
+> **Note** : Les fichiers `_root.tsx` sont **générés automatiquement** par `watch-routes.ts`. Ne pas les modifier manuellement.
 
-Le fichier sépare les routes en deux catégories :
+### 3. Arbre de routes
 
-#### Routes absolues
-
-Routes avec `path` absolu (commençant par `/`) et `override: true` :
+Toutes les routes sont enfants de leur groupe :
 
 ```typescript
-const absoluteRoutes: RouteConfig[] = [
-  authLoginRoute,   // path: "/login"
-  protectedSettingsRoute, // path: "/mon-compte"
-]
-```
-
-**Caractéristiques** :
-- Attachées **directement** à `rootRoute`
-- Ignorent le `basePath` du groupe
-- Accessibles depuis la racine du site
-
-#### Routes de groupe
-
-Routes respectant la hiérarchie des groupes :
-
-```typescript
-const groupRoutes: RouteConfig[] = [
-  publicRoute.addChildren([...publicRoutes]),
-  authRoute.addChildren([...authRoutes]),
-  protectedRoute.addChildren([...protectedRoutes]),
-]
-```
-
-**Caractéristiques** :
-- Attachées à leur **route parent de groupe**
-- Héritent du `basePath` du groupe
-- Structure hiérarchique préservée
-
-### 4. Arbre de routes
-
-L'arbre final combine les deux types :
-
-```typescript
-const routeTree = rootRoute.addChildren([
-  ...groupRoutes,      // Routes hiérarchiques
-  ...absoluteRoutes,   // Routes absolues
+export const routeTree = rootRoute.addChildren([
+  publicRoute.addChildren([publicHomeRoute, publicDocsRoute]),
+  authRoute.addChildren([authLoginRoute, authRegisterRoute]),
+  protectedRoute.addChildren([protectedDashboardRoute, protectedSettingsRoute]),
 ])
 ```
 
-**Ordre** :
-1. Routes de groupe (avec hiérarchie)
-2. Routes absolues (plates)
-
-### 5. Instance du router
+### 4. Instance du router
 
 Export de l'instance TanStack Router :
 
 ```typescript
 export const router = createRouter({ routeTree })
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
   }
 }
 ```
 
-**Usage** :
+**Usage dans `App.tsx`** :
 ```typescript
-import { router } from "./router"
+import { routeTree } from "@/router"
 
-<RouterProvider router={router} />
+const router = createRouter({ routeTree })
 ```
 
 ## 🔄 Génération automatique
@@ -165,55 +112,33 @@ Le fichier est **régénéré** par `watch-routes.ts` dans ces cas :
 **route.config.ts** :
 ```typescript
 export const routeConfig = {
-  "public/home": { path: "/", override: false },
-  "auth/login": { path: "/login", override: true },
+  "public/home": { path: "/", override: true },
+  "public/docs": { path: "docs", override: false },
+  "auth/login": { path: "login", override: false },
   "auth/register": { path: "register", override: false },
   "protected/dashboard": { path: "dashboard", override: false },
-  "protected/settings": { path: "/mon-compte", override: true },
+  "protected/settings": { path: "settings", override: false },
 }
 ```
 
 ### Router généré
 
 ```typescript
-import { publicRoute, publicRoutes } from "./routes/public"
-import { authRoute, authRoutes } from "./routes/auth"
-import { protectedRoute, protectedRoutes } from "./routes/protected"
-import { createRootRoute, createRouter } from "@tanstack/react-router"
-import { Outlet } from "@tanstack/react-router"
-import type { RouteConfig } from "@tanstack/react-router"
+import { createRouter } from '@tanstack/react-router'
+import { rootRoute } from '@/routes/root'
+import { publicRoute, publicDocsRoute, publicHomeRoute } from '@/routes/public/_root'
+import { authRoute, authLoginRoute, authRegisterRoute } from '@/routes/auth/_root'
+import { protectedRoute, protectedDashboardRoute, protectedSettingsRoute } from '@/routes/protected/_root'
 
-const rootRoute = createRootRoute({
-  component: () => <Outlet />,
-})
-
-// Routes absolues (override: true avec path absolu)
-const absoluteRoutes: RouteConfig[] = [
-  authLoginRoute,           // /login
-  protectedSettingsRoute,   // /mon-compte
-]
-
-// Routes de groupe
-const groupRoutes: RouteConfig[] = [
-  publicRoute.addChildren([
-    publicHomeRoute,        // /
-  ]),
-  authRoute.addChildren([
-    authRegisterRoute,      // /auth/register
-  ]),
-  protectedRoute.addChildren([
-    protectedDashboardRoute, // /app/dashboard
-  ]),
-]
-
-const routeTree = rootRoute.addChildren([
-  ...groupRoutes,
-  ...absoluteRoutes,
+export const routeTree = rootRoute.addChildren([
+  publicRoute.addChildren([publicDocsRoute, publicHomeRoute]),
+  authRoute.addChildren([authLoginRoute, authRegisterRoute]),
+  protectedRoute.addChildren([protectedDashboardRoute, protectedSettingsRoute]),
 ])
 
 export const router = createRouter({ routeTree })
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
   }
@@ -224,80 +149,15 @@ declare module "@tanstack/react-router" {
 
 ```
 rootRoute (/)
-├─ publicRoute (/)
-│  └─ publicHomeRoute (/)         → URL: /
+├─ publicRoute (_public)
+│  ├─ publicHomeRoute (/)           → URL: /
+│  └─ publicDocsRoute (/docs)       → URL: /docs
 ├─ authRoute (/auth)
-│  └─ authRegisterRoute (register) → URL: /auth/register
-├─ protectedRoute (/app)
-│  └─ protectedDashboardRoute (dashboard) → URL: /app/dashboard
-├─ authLoginRoute (/login)        → URL: /login
-└─ protectedSettingsRoute (/mon-compte) → URL: /mon-compte
-```
-
-## 🎨 Logique de séparation
-
-### Condition pour route absolue
-
-Une route est considérée comme **absolue** si :
-1. `path` commence par `/`
-2. `override === true` dans `route.config.ts`
-
-```typescript
-// Exemple de détection dans watch-routes.ts
-const isAbsolutePath = childPath.startsWith("/") && override === true
-
-const parentRoute = isAbsolutePath 
-  ? 'rootRoute'           // → Route absolue
-  : `${group}Route`       // → Route de groupe
-```
-
-### Génération du code
-
-**Routes absolues** :
-```typescript
-// Attachées à rootRoute
-export const authLoginRoute = createRoute({
-  getParentRoute: () => rootRoute,  // ✅ Directement sous rootRoute
-  path: "/login",
-  component: AuthLogin,
-})
-```
-
-**Routes de groupe** :
-```typescript
-// Attachées à groupRoute
-export const authRegisterRoute = createRoute({
-  getParentRoute: () => authRoute,  // ✅ Sous authRoute
-  path: "register",                 // Path relatif
-  component: AuthRegister,
-})
-```
-
-## 🔗 Liens avec les autres fichiers
-
-### Imports depuis `routes/{group}/index.tsx`
-
-Chaque groupe exporte :
-
-```typescript
-// src/routes/public/index.tsx
-export const publicRoute = createRoute({...})
-export const publicRoutes = [homeRoute, aboutRoute]
-
-// src/routes/auth/index.tsx
-export const authRoute = createRoute({...})
-export const authRoutes = [loginRoute, registerRoute]
-```
-
-### Utilisation dans `main.tsx`
-
-```typescript
-import { router } from "./router"
-import { RouterProvider } from "@tanstack/react-router"
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <RouterProvider router={router} />
-)
+│  ├─ authLoginRoute (/login)       → URL: /auth/login
+│  └─ authRegisterRoute (/register) → URL: /auth/register
+└─ protectedRoute (/app)
+   ├─ protectedDashboardRoute (/dashboard) → URL: /app/dashboard
+   └─ protectedSettingsRoute (/settings)   → URL: /app/settings
 ```
 
 ## ⚠️ Avertissements
@@ -310,22 +170,8 @@ Toute modification sera **écrasée** lors de la prochaine génération.
 
 **Alternatives** :
 - Modifier `route.config.ts` pour changer les paths
-- Modifier les fichiers de groupe dans `routes/{group}/index.tsx`
+- Modifier les pages dans `routes/{group}/`
 - Modifier le générateur dans `scripts/watch-routes.ts`
-
-### 🚨 Ordre d'import
-
-L'ordre des imports est important :
-
-```typescript
-// ✅ BON : Imports avant createRouter
-import { publicRoute } from "./routes/public"
-import { createRouter } from "@tanstack/react-router"
-
-// ❌ MAUVAIS : createRouter avant imports
-import { createRouter } from "@tanstack/react-router"
-import { publicRoute } from "./routes/public"
-```
 
 ### 🚨 Duplication de paths
 
@@ -336,8 +182,6 @@ Attention aux **routes en double** avec le même path absolu :
 "public/home": { path: "/", override: true },
 "public/index": { path: "/", override: true },
 ```
-
-Le watcher affiche un **warning** en cas de duplication détectée.
 
 ## 🐛 Troubleshooting
 
@@ -355,41 +199,11 @@ Le watcher affiche un **warning** en cas de duplication détectée.
 - Vérifier les logs du watcher
 - Vérifier la structure des dossiers
 
-### Problème : Route inaccessible
-
-**Symptôme** : La route existe mais affiche une erreur.
-
-**Causes possibles** :
-1. Import manquant dans `router.ts`
-2. Composant non exporté
-3. Erreur dans le composant
-
-**Solution** :
-- Vérifier que le composant est bien exporté :
-  ```typescript
-  export function MyComponent() { ... }
-  ```
-- Vérifier les logs de la console navigateur
-
 ### Problème : Arbre de routes incorrect
-
-**Symptôme** : La hiérarchie des routes ne correspond pas à la config.
-
-**Causes possibles** :
-1. `route.config.ts` non pris en compte (besoin de redémarrer)
-2. Erreur dans la logique de génération
 
 **Solution** :
 - Redémarrer le serveur après modification de `route.config.ts`
-- Vérifier les logs du watcher pour voir la détection des routes absolues
-
-## 📊 Récapitulatif
-
-| Type de route | Parent | Path | Exemple |
-|---------------|--------|------|---------|
-| Absolue | `rootRoute` | Absolu (`/...`) | `/login`, `/mon-compte` |
-| Groupe | `{group}Route` | Relatif | `dashboard` → `/app/dashboard` |
-| Index | `rootRoute` ou `{group}Route` | `/` | `/` ou `/app` |
+- Vérifier les logs du watcher
 
 ## 🔗 Fichiers liés
 
@@ -400,10 +214,8 @@ Le watcher affiche un **warning** en cas de duplication détectée.
 ## 💡 Bonnes pratiques
 
 1. ✅ **Ne jamais éditer router.ts** : C'est un fichier généré
-2. ✅ **Comprendre la séparation absolues/groupe** : Important pour la structure
-3. ✅ **Vérifier les logs** : Le watcher indique les routes absolues détectées
-4. ✅ **Redémarrer après config** : Les changements de config nécessitent un restart
-5. ✅ **Utiliser TypeScript** : Le router est typé, profitez-en !
+2. ✅ **Redémarrer après config** : Les changements de config nécessitent un restart
+3. ✅ **Utiliser TypeScript** : Le router est typé, profitez-en !
 
 ## 🚀 Aller plus loin
 
@@ -414,10 +226,9 @@ TanStack Router supporte les loaders pour charger des données :
 ```typescript
 export const dashboardRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: "dashboard",
+  path: 'dashboard',
   component: Dashboard,
   loader: async () => {
-    // Charger les données
     return { data: await fetchDashboard() }
   },
 })
@@ -433,40 +244,36 @@ export const protectedRoute = createRoute({
   path: "/app",
   beforeLoad: async ({ location }) => {
     if (!isAuthenticated()) {
-      throw redirect({ to: "/login", search: { redirect: location.href } })
+      throw redirect({ to: "/auth/login", search: { redirect: location.href } })
     }
   },
 })
 ```
 
-### Nested layouts
+### Layout wrappers
 
-Créer des layouts imbriqués :
+Créer des layouts via `_layout.tsx` :
 
 ```typescript
-// Layout pour /app
-export const protectedRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/app",
-  component: () => (
+// src/routes/protected/_layout.tsx
+export default function ProtectedLayout() {
+  return (
     <div>
       <Sidebar />
       <Outlet />
     </div>
-  ),
-})
+  )
+}
 ```
 
-### Paramètres de route
-
-Définir des routes dynamiques :
+### Dynamic route parameters
 
 ```typescript
-export const userRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/user/$userId",
-  component: UserProfile,
-})
+// src/routes/protected/$userId.tsx → URL: /app/:userId
+export default function UserPage() {
+  const { userId } = useParams({ strict: false })
+  return <div>User: {userId}</div>
+}
 ```
 
 ## 📚 Ressources

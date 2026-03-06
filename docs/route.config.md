@@ -8,16 +8,16 @@ Le fichier `route.config.ts` est la **configuration centralisée** du système d
 
 Découpler la **structure de fichiers** de la **structure d'URL** :
 - Le fichier `auth/login.tsx` peut être accessible via `/login` (au lieu de `/auth/login`)
-- Le fichier `protected/settings.tsx` peut être accessible via `/mon-compte` (au lieu de `/app/settings`)
+- Le fichier `protected/settings.tsx` peut être accessible via `/my-account` (au lieu de `/app/settings`)
 
 ## 📝 Structure du fichier
 
 ```typescript
 export const routeConfig: Record<string, { path?: string; override?: boolean }> = {
-  // Clé : "groupe/nomDuFichier" (sans .tsx)
-  "auth/login": { 
-    path: "/login",      // Chemin d'URL personnalisé
-    override: true       // Active la redéfinition
+  // Key: "group/fileName" (without .tsx)
+  "auth/login": {
+    path: "/login",      // Custom URL path
+    override: true       // Activate the override
   },
 }
 ```
@@ -35,6 +35,8 @@ La clé suit le format : `"${group}/${fileName}"`
 - `"public/home"` → fichier `src/routes/public/home.tsx`
 - `"auth/login"` → fichier `src/routes/auth/login.tsx`
 - `"protected/dashboard"` → fichier `src/routes/protected/dashboard.tsx`
+
+> **Note** : Les fichiers `_root.tsx` dans chaque groupe sont des fichiers **générés automatiquement** (pas des pages). Les pages réelles sont les fichiers `.tsx` qui ne commencent pas par `_`.
 
 ## 🎨 Propriétés
 
@@ -67,8 +69,8 @@ Ajouté au `basePath` du groupe :
 // → URL finale : /login
 //   (ignore le basePath "/auth")
 
-"protected/settings": { path: "/mon-compte", override: true }
-// → URL finale : /mon-compte
+"protected/settings": { path: "/my-account", override: true }
+// → URL finale : /my-account
 //   (ignore le basePath "/app")
 ```
 
@@ -77,7 +79,7 @@ Ajouté au `basePath` du groupe :
 Route index du groupe :
 
 ```typescript
-"public/home": { path: "/", override: false }
+"public/home": { path: "/", override: true }
 // → URL finale : /
 //   (route racine)
 ```
@@ -119,14 +121,14 @@ Chaque groupe a un `basePath` par défaut :
 
 ```typescript
 export const routeConfig: Record<string, { path?: string; override?: boolean }> = {
-  // Routes publiques
-  "public/home": { path: "/", override: false },
-  
-  // Routes d'auth
+  // Public routes
+  "public/home": { path: "/", override: true },
+
+  // Auth routes
   "auth/login": { path: "login", override: false },
   "auth/register": { path: "register", override: false },
-  
-  // Routes protégées
+
+  // Protected routes
   "protected/dashboard": { path: "dashboard", override: false },
   "protected/settings": { path: "settings", override: false },
 }
@@ -143,31 +145,31 @@ export const routeConfig: Record<string, { path?: string; override?: boolean }> 
 
 ```typescript
 export const routeConfig: Record<string, { path?: string; override?: boolean }> = {
-  // Login accessible directement à la racine
+  // Login accessible directly at root
   "auth/login": { path: "/login", override: true },
-  
-  // Register sous /auth
+
+  // Register under /auth
   "auth/register": { path: "register", override: false },
-  
-  // Settings accessible via un chemin personnalisé
-  "protected/settings": { path: "/mon-compte", override: true },
+
+  // Settings accessible via custom path
+  "protected/settings": { path: "/my-account", override: true },
 }
 ```
 
 **URLs générées** :
 - `/login` (au lieu de `/auth/login`)
 - `/auth/register` (inchangé)
-- `/mon-compte` (au lieu de `/app/settings`)
+- `/my-account` (au lieu de `/app/settings`)
 
 ### Exemple 3 : Chemins imbriqués
 
 ```typescript
 export const routeConfig: Record<string, { path?: string; override?: boolean }> = {
-  // Chemin imbriqué relatif
+  // Nested relative path
   "protected/settings": { path: "account/settings", override: true },
   // → URL finale : /app/account/settings
-  
-  // Chemin imbriqué absolu
+
+  // Nested absolute path
   "protected/profile": { path: "/user/profile", override: true },
   // → URL finale : /user/profile
 }
@@ -193,7 +195,7 @@ Quand un nouveau fichier `.tsx` est créé :
 
 ```typescript
 // Nouvelle route détectée
-"public/about": { path: "about", override: false }, // 🆕 Auto-ajouté
+"public/about": { path: "about", override: false }, // 🆕 Auto-added
 ```
 
 ### Suppression de routes
@@ -210,7 +212,7 @@ Quand un fichier `.tsx` est supprimé, la ligne correspondante est **automatique
 
 // Après sync (ajout d'une nouvelle route)
 "auth/login": { path: "/login", override: true }, // ✅ Préservé !
-"auth/forgot": { path: "forgot", override: false }, // 🆕 Auto-ajouté
+"auth/forgot": { path: "forgot", override: false }, // 🆕 Auto-added
 ```
 
 ## ⚠️ Avertissements
@@ -248,35 +250,26 @@ Pour que le `path` personnalisé soit pris en compte, `override` doit être `tru
 
 ## 🎯 Cas d'usage
 
-### Cas 1 : Routes multilingues
+### Cas 1 : URLs SEO-friendly
 
 ```typescript
-"public/home": { path: "/", override: false },
-"public/home-fr": { path: "/fr", override: true },
-"public/home-en": { path: "/en", override: true },
+"protected/settings": { path: "/my-account/settings", override: true },
+"protected/profile": { path: "/my-account/profile", override: true },
 ```
 
-### Cas 2 : URLs SEO-friendly
+### Cas 2 : Shortcuts at root
 
 ```typescript
-"protected/settings": { path: "/mon-compte/parametres", override: true },
-"protected/profile": { path: "/mon-compte/profil", override: true },
-```
-
-### Cas 3 : Migration d'URLs
-
-```typescript
-// Ancien : /auth/login
-// Nouveau : /connexion
-"auth/login": { path: "/connexion", override: true },
-```
-
-### Cas 4 : Raccourcis
-
-```typescript
-// Accès rapide depuis la racine
 "auth/login": { path: "/login", override: true },
 "auth/register": { path: "/register", override: true },
+```
+
+### Cas 3 : URL migration
+
+```typescript
+// Old: /auth/login
+// New: /signin
+"auth/login": { path: "/signin", override: true },
 ```
 
 ## 📊 Récapitulatif
@@ -286,13 +279,12 @@ Pour que le `path` personnalisé soit pris en compte, `override` doit être `tru
 | Par défaut | `false` | `"login"` | `/auth/login` |
 | Relatif custom | `true` | `"signin"` | `/auth/signin` |
 | Absolu | `true` | `"/login"` | `/login` |
-| Index | `false` | `"/"` | `/` |
+| Index | `true` | `"/"` | `/` |
 
 ## 🔗 Fichiers liés
 
 - [`watch-routes.md`](./watch-routes.md) : Documentation du watcher
 - [`router.md`](./router.md) : Documentation du router
-- [`ROUTING-GUIDE.md`](../ROUTING-GUIDE.md) : Guide utilisateur complet
 
 ## 💡 Bonnes pratiques
 

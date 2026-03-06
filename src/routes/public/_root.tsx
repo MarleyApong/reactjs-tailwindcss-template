@@ -9,17 +9,15 @@ export const publicRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_public',
 })
-
-export const docsRoute = createRoute({
+export const publicDocsRoute = createRoute({
   getParentRoute: () => publicRoute,
   path: '/docs',
   component: Docs,
 })
-export const homeRoute = createRoute({
-  getParentRoute: () => rootRoute,
+export const publicHomeRoute = createRoute({
+  getParentRoute: () => publicRoute,
   path: '/',
   component: Home,
 })
 
 // === AUTO-GENERATED ROUTES END ===
-

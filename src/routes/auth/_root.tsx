@@ -10,22 +10,20 @@ export const authRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/auth',
 })
-
-export const helloRoute = createRoute({
+export const authHelloRoute = createRoute({
   getParentRoute: () => authRoute,
-  path: 'hello',
+  path: '/hello',
   component: Hello,
 })
-export const loginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/mui',
+export const authLoginRoute = createRoute({
+  getParentRoute: () => authRoute,
+  path: '/login',
   component: Login,
 })
-export const registerRoute = createRoute({
+export const authRegisterRoute = createRoute({
   getParentRoute: () => authRoute,
-  path: 'register',
+  path: '/register',
   component: Register,
 })
 
 // === AUTO-GENERATED ROUTES END ===
-

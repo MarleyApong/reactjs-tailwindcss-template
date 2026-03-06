@@ -11,17 +11,17 @@ const __dirname = dirname(__filename);
 // Simple glob replacement using Node.js built-in methods
 function walkDir(dir, filePatterns, excludePatterns) {
   const results = [];
-  
+
   if (!fs.existsSync(dir)) {
     return results;
   }
-  
+
   const files = fs.readdirSync(dir, { withFileTypes: true });
-  
+
   for (const file of files) {
     const filePath = path.join(dir, file.name);
     const relativePath = filePath.replace(/\\/g, '/');
-    
+
     // Check exclude patterns
     const shouldExclude = excludePatterns.some(pattern => {
       // First replace glob patterns, then escape other special chars
@@ -33,11 +33,11 @@ function walkDir(dir, filePatterns, excludePatterns) {
         .replace(/___STAR___/g, '[^/]*');     // Restore * as [^/]*
       return new RegExp(regex).test(relativePath);
     });
-    
+
     if (shouldExclude) {
       continue;
     }
-    
+
     if (file.isDirectory()) {
       results.push(...walkDir(filePath, filePatterns, excludePatterns));
     } else {
@@ -53,13 +53,13 @@ function walkDir(dir, filePatterns, excludePatterns) {
         }
         return false;
       });
-      
+
       if (matchesPattern) {
         results.push(filePath);
       }
     }
   }
-  
+
   return results;
 }
 
@@ -176,7 +176,7 @@ class I18nParser {
   // Charger les traductions existantes pour une langue
   loadExistingTranslationsForLanguage(language) {
     const langPath = path.join(this.config.localesPath, `${language}.ts`);
-    
+
     if (!fs.existsSync(langPath)) {
       this.log(`📄 Fichier ${language}.ts non trouvé, sera créé`, true);
       return {};
@@ -184,7 +184,7 @@ class I18nParser {
 
     try {
       const content = fs.readFileSync(langPath, 'utf8');
-      
+
       // Extraire les clés existantes de façon simple
       const keyRegex = /(\w+(?:\.\w+)*)\s*:\s*"[^"]*"/g;
       const keys = new Set();
@@ -196,34 +196,102 @@ class I18nParser {
 
       this.existingKeys.set(language, keys);
       this.log(`📋 ${keys.size} clé(s) existante(s) pour ${language}`, true);
-      
-      return this.parseExistingTranslations(content);
+
+      const parsed = this.parseExistingTranslations(content);
+
+      // Safety guard: if the file has content but parsing returned empty, abort
+      // to avoid silently overwriting all existing translations with placeholder keys.
+      if (Object.keys(parsed).length === 0 && content.trim().length > 100) {
+        throw new Error(
+          `Le parsing de ${language}.ts a retourné un objet vide alors que le fichier contient du contenu. ` +
+          `Le script va s'arrêter pour éviter d'écraser vos traductions. ` +
+          `Vérifiez la syntaxe du fichier.`
+        );
+      }
+
+      return parsed;
     } catch (error) {
-      this.log(`Erreur lors du chargement ${language}: ${error.message}`, true);
-      return {};
+      // Re-throw to stop execution — better to fail loudly than silently destroy translations
+      console.error(`\n❌ ERREUR CRITIQUE lors du chargement de ${language}.ts:`);
+      console.error(`   ${error.message}`);
+      console.error(`\n⚠️  Le script est interrompu pour protéger vos traductions existantes.\n`);
+      process.exit(1);
     }
   }
 
   // Parser simple pour extraire les traductions existantes
   parseExistingTranslations(content) {
     try {
-      // Extraire l'objet d'export en utilisant une approche plus robuste
-      const match = content.match(/export const \w+ = (\{[\s\S]*?\});[\s]*$/m);
-      if (match) {
-        const objectString = match[1];
-        
-        // Créer une fonction qui évalue l'objet de façon sécurisée
-        const evalFunction = new Function('return ' + objectString);
-        const result = evalFunction();
-        
-        this.log(`✅ Traductions existantes chargées`, true);
-        return result;
+      // Trouver le début de l'export
+      const exportMatch = content.match(/export const (\w+) = /);
+      if (!exportMatch) {
+        this.log(`⚠️  Pas d'export trouvé dans le fichier`, true);
+        return {};
       }
+
+      // Extraire tout après l'export jusqu'à la fin du fichier
+      const startIndex = content.indexOf('export const');
+      const exportContent = content.substring(startIndex);
+
+      // Trouver l'objet principal en comptant les accolades
+      const objectStart = exportContent.indexOf('{');
+      if (objectStart === -1) {
+        this.log(`⚠️  Objet non trouvé`, true);
+        return {};
+      }
+
+      let braceCount = 0;
+      let objectEnd = -1;
+      let inString = false;
+      let stringChar = null;
+      let escaped = false;
+
+      for (let i = objectStart; i < exportContent.length; i++) {
+        const char = exportContent[i];
+
+        // Gérer les chaînes de caractères
+        if (!escaped && (char === '"' || char === "'" || char === '`')) {
+          if (!inString) {
+            inString = true;
+            stringChar = char;
+          } else if (char === stringChar) {
+            inString = false;
+            stringChar = null;
+          }
+        }
+
+        escaped = !escaped && char === '\\';
+
+        // Compter les accolades seulement en dehors des chaînes
+        if (!inString) {
+          if (char === '{') braceCount++;
+          if (char === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              objectEnd = i;
+              break;
+            }
+          }
+        }
+      }
+
+      if (objectEnd === -1) {
+        this.log(`⚠️  Fin d'objet non trouvée`, true);
+        return {};
+      }
+
+      const objectString = exportContent.substring(objectStart, objectEnd + 1);
+
+      // Créer une fonction qui évalue l'objet de façon sécurisée
+      const evalFunction = new Function('return ' + objectString);
+      const result = evalFunction();
+
+      this.log(`✅ Traductions existantes chargées (${Object.keys(result).length} clés de premier niveau)`, true);
+      return result;
     } catch (error) {
-      this.log(`⚠️  Erreur parsing: ${error.message}`, true);
+      // Re-throw so the caller can handle it properly (fail loudly, not silently)
+      throw new Error(`Erreur lors du parsing de l'objet de traductions: ${error.message}`);
     }
-    
-    return {};
   }
 
   // Utilitaire pour définir une valeur imbriquée
@@ -250,11 +318,12 @@ class I18nParser {
 
       for (let i = 0; i < parts.length; i++) {
         const part = parts[i];
-        
+
         if (i === parts.length - 1) {
-          // C'est la dernière partie, assigner la valeur seulement si elle n'existe pas
+          // Only add the key if it doesn't already exist.
+          // Never overwrite a key that already has a value (empty or not).
           if (!current.hasOwnProperty(part)) {
-            current[part] = key; // Valeur par défaut = clé (vous la modifierez ensuite)
+            current[part] = ""; // Empty placeholder — developer must fill this in
             this.scanResults.keysAdded.push(`${language}: ${key}`);
           }
         } else {
@@ -284,7 +353,7 @@ class I18nParser {
   // Écrire le fichier de traductions pour une langue
   writeTranslationsFileForLanguage(translations, language) {
     const langPath = path.join(this.config.localesPath, `${language}.ts`);
-    
+
     // Créer le répertoire s'il n'existe pas
     if (!fs.existsSync(this.config.localesPath)) {
       fs.mkdirSync(this.config.localesPath, { recursive: true });
@@ -316,7 +385,7 @@ ${this.formatTranslationsObject(translations, 1)}};`;
 
     for (let i = 0; i < entries.length; i++) {
       const [key, value] = entries[i];
-      
+
       if (typeof value === 'object') {
         result += `${spaces}${key}: {\n`;
         result += this.formatTranslationsObject(value, indent + 1);
@@ -334,7 +403,7 @@ ${this.formatTranslationsObject(translations, 1)}};`;
     for (const language of this.config.supportedLanguages) {
       const existingKeys = this.existingKeys.get(language) || new Set();
       const unusedKeys = [];
-      
+
       for (const key of existingKeys) {
         if (!this.foundKeys.has(key)) {
           unusedKeys.push(key);
@@ -352,14 +421,14 @@ ${this.formatTranslationsObject(translations, 1)}};`;
   // Écrire le fichier index.ts principal
   writeMainIndexFile() {
     const indexPath = path.join(this.config.localesPath, 'index.ts');
-    
+
     const imports = this.config.supportedLanguages
       .map(lang => `import { ${lang} } from './${lang}';`)
       .join('\n');
 
     const languageNames = {
       fr: 'Français',
-      en: 'English', 
+      en: 'English',
       es: 'Español'
     };
 
@@ -403,7 +472,7 @@ export const DEFAULT_LANGUAGE: SupportedLanguage = '${this.config.supportedLangu
   // Écrire le fichier de traductions
   writeTranslationsFile(translations) {
     const translationsPath = path.join(this.config.i18nPath, 'index.ts');
-    
+
     // Créer le répertoire s'il n'existe pas
     if (!fs.existsSync(this.config.i18nPath)) {
       fs.mkdirSync(this.config.i18nPath, { recursive: true });
@@ -419,7 +488,7 @@ export const useTranslation = () => {
   const t = (key: TranslationKey): string => {
     const keys = key.split('.');
     let value: any = translations;
-    
+
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
         value = value[k];
@@ -427,13 +496,13 @@ export const useTranslation = () => {
         // En développement, afficher une erreur claire
         if (__DEV__) {
           console.error(\`❌ Translation key not found: "\${key}"\`);
-          console.error(\`Available keys starting with "\${keys[0]}":, 
+          console.error(\`Available keys starting with "\${keys[0]}":,
             Object.keys(translations).filter(k => k.startsWith(keys[0])));
         }
         return key; // Return the key if translation doesn't exist
       }
     }
-    
+
     return typeof value === 'string' ? value : key;
   };
 
@@ -444,7 +513,7 @@ export const useTranslation = () => {
 export const hasTranslation = (key: string): key is TranslationKey => {
   const keys = key.split('.');
   let value: any = translations;
-  
+
   for (const k of keys) {
     if (value && typeof value === 'object' && k in value) {
       value = value[k];
@@ -452,7 +521,7 @@ export const hasTranslation = (key: string): key is TranslationKey => {
       return false;
     }
   }
-  
+
   return typeof value === 'string';
 };
 
@@ -467,7 +536,7 @@ export type { TranslationKey, TranslationKeys };
   // Générer les types TypeScript
   generateTypeDefinition(keys) {
     const sortedKeys = this.config.sort ? Array.from(keys).sort() : Array.from(keys);
-    
+
     let typeDefinition = `// Types générés automatiquement - NE PAS MODIFIER MANUELLEMENT
 // Généré le ${new Date().toLocaleString('fr-FR')}
 export interface TranslationKeys {\n`;
@@ -477,7 +546,7 @@ export interface TranslationKeys {\n`;
     }
 
     typeDefinition += `}\n\nexport type TranslationKey = keyof TranslationKeys;\n`;
-    
+
     return typeDefinition;
   }
 
@@ -485,7 +554,7 @@ export interface TranslationKeys {\n`;
   writeTypesFile(keys) {
     const typesPath = path.join(this.config.i18nPath, 'types.ts');
     const typeDefinition = this.generateTypeDefinition(keys);
-    
+
     fs.writeFileSync(typesPath, typeDefinition);
     this.success(`Fichier de types mis à jour: ${typesPath}`);
   }
@@ -494,7 +563,7 @@ export interface TranslationKeys {\n`;
   generateReport() {
     this.log('\n📊 RAPPORT DE SCAN I18N');
     this.log('========================');
-    
+
     this.log(`📁 Fichiers scannés: ${this.scanResults.filesScanned.length}`);
     this.log(`🔑 Clés trouvées: ${this.foundKeys.size}`);
     this.log(`🌍 Langues générées: ${this.config.supportedLanguages.join(', ')}`);
@@ -520,7 +589,7 @@ export interface TranslationKeys {\n`;
           keysByLanguage[lang].push(key);
         }
       });
-      
+
       Object.entries(keysByLanguage).forEach(([lang, keys]) => {
         this.log(`  ${lang}: ${keys.length} nouvelle(s) clé(s)`);
         if (this.config.verbose) {
@@ -551,31 +620,31 @@ export interface TranslationKeys {\n`;
   run() {
     try {
       this.log('🌍 Démarrage du scan i18n multi-langues...\n');
-      
+
       // Scanner les fichiers
       const foundKeys = this.scanFiles();
-      
+
       // Générer les traductions pour chaque langue
       for (const language of this.config.supportedLanguages) {
         this.log(`\n🔄 Traitement de la langue: ${language}`, true);
         const translations = this.generateTranslationsObjectForLanguage(foundKeys, language);
         this.writeTranslationsFileForLanguage(translations, language);
       }
-      
+
       // Écrire le fichier index des locales
       this.writeMainIndexFile();
-      
+
       // Écrire le fichier de types
       this.writeTypesFile(foundKeys);
-      
+
       // Nettoyer si demandé
       if (this.config.clean) {
         this.cleanUnusedKeys();
       }
-      
+
       // Générer le rapport
       this.generateReport();
-      
+
     } catch (error) {
       this.error(`Erreur fatale: ${error.message}`);
       process.exit(1);
@@ -587,10 +656,10 @@ export interface TranslationKeys {\n`;
 function parseArgs() {
   const args = process.argv.slice(2);
   const config = { ...DEFAULT_CONFIG };
-  
+
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    
+
     switch (arg) {
       case '--verbose':
       case '-v':
@@ -636,7 +705,7 @@ Exemples:
         process.exit(0);
     }
   }
-  
+
   return config;
 }
 

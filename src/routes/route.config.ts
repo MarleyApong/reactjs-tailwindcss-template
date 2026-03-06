@@ -1,61 +1,49 @@
 /**
- * Clef = `${group}/${fileName}` (sans l'extension .tsx)
- * Exemple : 'protected/dashboard' => route dans protected/dashboard.tsx
- * 
- * 🎯 RÈGLES DES PATHS :
- * 
- * 1. **Path RELATIF** (sans "/" au début) : 
- *    → Ajouté au basePath du groupe
- *    Exemple : "auth/login": { path: "login" } → URL finale : /auth/login
- * 
- * 2. **Path ABSOLU** (avec "/" au début) :
- *    → Priorité absolue, ignore le basePath du groupe
- *    Exemple : "auth/login": { path: "/login" } → URL finale : /login (pas /auth/login)
- * 
- * 3. **Path "/"** : Route index du groupe
- * 
- * 🔧 PROPRIÉTÉ `override` :
- * - `false` (défaut) : Utilise la structure de fichiers (path ignoré si non absolu)
- * - `true` : Force l'utilisation du path personnalisé défini ici
- * 
- * ⚠️ Ce fichier est AUTO-GÉNÉRÉ mais vos modifications sont préservées !
- * - Nouvelles routes → ajoutées automatiquement avec override: false
- * - Routes supprimées → retirées automatiquement
- * - Vos overrides → toujours préservés
- * 
- * ⚠️ ATTENTION : Si vous supprimez ce fichier, il sera recréé automatiquement
- *    mais TOUTES vos modifications personnalisées seront perdues !
- * 
- * 💡 NOTE : Les modifications de ce fichier nécessitent un redémarrage du serveur
- *    pour être prises en compte (Ctrl+C puis `npm run dev`)
+ * Route configuration — auto-generated with preservation of manual changes
+ *
+ * Key format: `${group}/${fileName}` (without .tsx extension)
+ * Example: 'protected/dashboard' → route in protected/dashboard.tsx
+ *
+ * 🎯 PATH RULES:
+ *
+ * 1. RELATIVE path (no leading "/"):
+ *    → Appended to the group basePath
+ *    Example: "auth/login": { path: "login" } → final URL: /auth/login
+ *
+ * 2. ABSOLUTE path (with leading "/"):
+ *    → Takes priority, ignores the group basePath
+ *    Example: "auth/login": { path: "/login" } → final URL: /login (not /auth/login)
+ *
+ * 3. Path "/": index route of the group
+ *
+ * 🔧 `override` PROPERTY:
+ * - `false` (default): uses the file structure (path ignored unless absolute)
+ * - `true`: forces the use of the custom path defined here
+ *
+ * ⚠️ This file is AUTO-GENERATED but your changes are preserved!
+ * - New routes → added automatically with override: false
+ * - Deleted routes → removed automatically
+ * - Your overrides → always preserved
+ *
+ * ⚠️ WARNING: If you delete this file, it will be recreated automatically
+ *    but ALL your custom changes will be lost!
+ *
+ * 💡 NOTE: Changes to this file require a server restart to take effect
+ *    (Ctrl+C then `npm run dev`)
  */
 export const routeConfig: Record<string, { path?: string; override?: boolean }> = {
-  // ------------------------------
-  // Routes publiques (basePath: "/")
-  // ------------------------------
+  // Public routes (basePath: "/")
   "public/home": { path: "/", override: true },
+  "public/docs": { path: "docs", override: false },
 
-  // ------------------------------
-  // Routes d'authentification (basePath: "/auth")
-  // ------------------------------
+  // Auth routes (basePath: "/auth")
   "auth/hello": { path: "hello", override: false },
-  "auth/login": { path: "/mui", override: true },
+  "auth/login": { path: "login", override: false },
   "auth/register": { path: "register", override: false },
 
-  // ------------------------------
-  // Routes protégées (basePath: "/app")
-  // ------------------------------
+  // Protected routes (basePath: "/app")
   "protected/dashboard": { path: "dashboard", override: false },
   "protected/me": { path: "me", override: false },
   "protected/profile": { path: "profile", override: false },
   "protected/settings": { path: "settings", override: false },
-
-  // Exemples d'overrides personnalisés :
-  // "protected/settings": { path: "mon-compte/parametres", override: true }, // → /app/mon-compte/parametres
-  // "public/about": { path: "/a-propos", override: true }, // → /a-propos (absolu)
-
-  // 🆕 Nouvelles routes public
-
-  // 🆕 Nouvelles routes public
-  "public/docs": { path: "docs", override: false }, // 🆕 Auto-ajouté
 }

@@ -18,19 +18,25 @@ Le script `watch-routes.ts` est le cœur du système de routing hybride de l'app
 ```
 src/routes/
 ├── route.config.ts    ← Configuration centralisée (auto-générée mais préservée)
-├── root.tsx           ← Route racine
+├── root.tsx           ← Route racine (créé manuellement)
 ├── public/            ← Routes publiques (basePath: "/")
-│   ├── index.tsx      ← Auto-généré
-│   └── home.tsx
+│   ├── _root.tsx      ← Définitions de routes (auto-généré) ⚙️
+│   ├── index.tsx      ← Page pour "/" 📄
+│   └── home.tsx       ← Page pour "/home" 📄
 ├── auth/              ← Routes d'authentification (basePath: "/auth")
-│   ├── index.tsx      ← Auto-généré
-│   ├── login.tsx
-│   └── register.tsx
+│   ├── _root.tsx      ← Définitions de routes (auto-généré) ⚙️
+│   └── login.tsx      ← Page pour "/auth/login" 📄
 └── protected/         ← Routes protégées (basePath: "/app")
-    ├── index.tsx      ← Auto-généré
-    ├── dashboard.tsx
-    └── settings.tsx
+    ├── _root.tsx      ← Définitions de routes (auto-généré) ⚙️
+    ├── _layout.tsx    ← Protection wrapper pour toutes les routes /app/* 🔒
+    ├── index.tsx      ← Page pour "/app/" 📄
+    └── dashboard.tsx  ← Page pour "/app/dashboard" 📄
 ```
+
+**Légende** :
+- ⚙️ = Fichier généré automatiquement (ne pas modifier)
+- 📄 = Page/composant réel (modifier librement)
+- 🔒 = Layout de protection (wrapping avec authentification)
 
 ## 🔧 Fonctionnement
 
@@ -42,7 +48,7 @@ Le watcher utilise **chokidar** pour surveiller le dossier `src/routes/` :
 chokidar.watch(routesRoot, { ignoreInitial: true }).on("all", (event, filePath) => {
   if (filePath.includes("route.config.ts")) return // Ignore les changements de config
   if (!filePath.endsWith(".tsx")) return
-  
+
   if (event === "add") {
     // Nouveau fichier détecté
     ensureComponentFile(filePath) // Initialise avec un template
@@ -74,16 +80,17 @@ La fonction `syncRouteConfig()` :
 "auth/login": { path: "/login", override: true }, // Personnalisé par l'utilisateur
 
 // Exemple de ligne ajoutée automatiquement :
-"public/about": { path: "about", override: false }, // 🆕 Auto-ajouté
+"public/about": { path: "about", override: false }, // 🆕 Auto-added
 ```
 
-### 3. Génération des `index.tsx`
+### 3. Génération des `_root.tsx`
 
 Pour chaque groupe (`public/`, `auth/`, `protected/`), la fonction `generateIndexFile()` :
 
-1. **Scanne** tous les fichiers `.tsx` du groupe
-2. **Lit** la configuration depuis `route.config.ts` (via `loadRouteConfig()`)
-3. **Génère** les routes en respectant les overrides :
+1. **Scanne** tous les fichiers `.tsx` du groupe (ignore les fichiers commençant par `_`)
+2. **Détecte** la présence de `_layout.tsx` pour le wrapping de protection
+3. **Lit** la configuration depuis `route.config.ts` (via `loadRouteConfig()`)
+4. **Génère** les routes en respectant les overrides :
 
 ```typescript
 if (useOverride && config?.path !== undefined) {
@@ -96,26 +103,58 @@ if (useOverride && config?.path !== undefined) {
 }
 ```
 
-4. **Écrit** le fichier `index.tsx` avec les imports et exports
+5. **Écrit** le fichier `_root.tsx` avec :
+   - Les imports des composants de pages
+   - La création de la route parent du groupe
+   - Les routes enfants avec `createRoute()`
+   - L'export de toutes les routes
+
+> **Important** : Les fichiers `index.tsx` sont maintenant des **pages réelles** (composants de contenu), pas des fichiers générés. Les définitions de routes sont dans `_root.tsx`.
 
 ### 4. Génération de `router.ts`
 
 La fonction `generateRouterFile()` :
 
 1. Collecte toutes les routes de tous les groupes
-2. Sépare les routes **absolues** (path commence par `/`) des **relatives**
-3. Construit l'arbre de routes :
+2. Construit l'arbre de routes (toutes les routes sont enfants de leur groupe) :
 
 ```typescript
 export const routeTree = rootRoute.addChildren([
-  publicRoute.addChildren([homeRoute]),     // Routes relatives au groupe
-  authRoute.addChildren([registerRoute]),   
-  protectedRoute.addChildren([...]),        
-  loginRoute                                 // Route absolue (hors du groupe)
+  publicRoute.addChildren([homeRoute, docsRoute]),
+  authRoute.addChildren([loginRoute, registerRoute]),
+  protectedRoute.addChildren([dashboardRoute, settingsRoute]),
 ])
 ```
 
-### 5. Initialisation des nouveaux composants
+### 5. Protection des routes avec `_layout.tsx`
+
+Les fichiers commençant par `_` ont un rôle spécial :
+
+**`_layout.tsx`** : Wrapper de protection pour toutes les routes du groupe
+
+```typescript
+// Exemple : src/routes/protected/_layout.tsx
+import { Outlet } from '@tanstack/react-router'
+import { useAuthStore } from '@/shared/stores/authStore'
+
+export default function ProtectedLayoutWrapper() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" />
+  }
+
+  return <Outlet />
+}
+```
+
+**Détection automatique** :
+- Le watcher détecte `_layout.tsx` et configure la route parent pour l'utiliser comme composant
+- Toutes les routes du groupe héritent de cette protection
+
+**`_root.tsx`** : Fichier généré contenant les définitions de routes (ne pas modifier)
+
+### 6. Initialisation des nouveaux composants
 
 Quand un nouveau fichier `.tsx` est créé vide, `ensureComponentFile()` l'initialise :
 
@@ -124,6 +163,8 @@ export default function NomDuComposant() {
   return <div>NomDuComposant</div>
 }
 ```
+
+> **Note** : Cette initialisation ne s'applique qu'aux pages (fichiers ne commençant pas par `_`).
 
 ## 📋 Flux de travail complet
 
@@ -151,10 +192,10 @@ graph TD
 1. Le fichier est initialisé avec un composant de base
 2. `route.config.ts` est mis à jour :
    ```typescript
-   "public/about": { path: "about", override: false }, // 🆕 Auto-ajouté
+   "public/about": { path: "about", override: false }, // 🆕 Auto-added
    ```
-3. `public/index.tsx` génère `aboutRoute`
-4. `router.ts` ajoute la route à l'arbre
+3. `public/_root.tsx` génère `publicAboutRoute` (fichier auto-généré)
+4. `router.ts` importe et ajoute la route à l'arbre
 5. URL accessible : `/about`
 
 ### Cas 2 : Redéfinir le chemin d'une route
@@ -167,7 +208,6 @@ graph TD
 **Résultat** :
 1. **Redémarrer le serveur** (Ctrl+C puis `npm run dev`)
 2. `login.tsx` est maintenant accessible via `/login` (au lieu de `/auth/login`)
-3. La route est attachée directement à `rootRoute` (pas `authRoute`)
 
 ### Cas 3 : Supprimer une route
 
@@ -176,8 +216,8 @@ graph TD
 **Résultat** :
 1. Le watcher détecte la suppression
 2. `syncRouteConfig()` retire la ligne de `route.config.ts`
-3. `public/index.tsx` ne génère plus `aboutRoute`
-4. `router.ts` retire la route de l'arbre
+3. `public/_root.tsx` est régénéré sans `publicAboutRoute`
+4. `router.ts` est régénéré sans la route dans l'arbre
 
 ## ⚙️ Configuration
 
@@ -216,16 +256,16 @@ Charge la configuration depuis `route.config.ts` en parsant le fichier texte.
 Synchronise `route.config.ts` avec la structure de fichiers (ajoute/retire des routes).
 
 ### `generateIndexFile(group, basePath)`
-Génère le fichier `index.tsx` pour un groupe de routes.
+Génère le fichier `_root.tsx` pour un groupe de routes.
 
 ### `generateRouterFile()`
-Génère le fichier `router.ts` avec l'arbre complet des routes.
+Génère le fichier `src/router.ts` avec l'arbre complet des routes.
 
 ### `ensureComponentFile(filePath)`
 Initialise un nouveau composant vide avec un template par défaut.
 
 ### `rebuildAll()`
-Régénère tout : config + index de tous les groupes + router.
+Régénère tout : config + `_root.tsx` de tous les groupes + router.
 
 ## 🚨 Points d'attention
 
@@ -239,6 +279,11 @@ Le fichier est chargé **au démarrage** du serveur. Pour que les changements so
 ### ⚠️ Ne pas supprimer `route.config.ts`
 
 Si le fichier est supprimé, il sera **recréé avec les valeurs par défaut** et **toutes les personnalisations seront perdues** !
+
+### ⚠️ Ne pas modifier `_root.tsx` manuellement
+
+Ces fichiers sont **régénérés automatiquement**. Toute modification sera écrasée.
+Pour changer le comportement des routes, modifiez `route.config.ts`.
 
 ### ⚠️ Routes absolues vs relatives
 
@@ -259,17 +304,18 @@ Sans `override: true`, le path personnalisé est ignoré (sauf pour les paths ab
 Le watcher affiche des logs pour chaque route :
 
 ```
-📍 [auth] login.tsx → configKey="auth/login" → path="/login" 🔧 override (absolu)
-📍 [protected] dashboard.tsx → configKey="protected/dashboard" → path="dashboard"
+📍 [auth] login.tsx → parent="authRoute" → path="/login"
+📍 [protected] dashboard.tsx → parent="protectedRoute" → path="/dashboard"
 ```
 
-Légende :
-- `🔧 override` : Route avec override activé
-- `(absolu)` : Path absolu (commence par `/`)
+### Windows file locking
 
-### Vérifier la configuration chargée
+Sur Windows, les fichiers `.tsx` peuvent être temporairement verrouillés par l'IDE.
+Le watcher retente automatiquement l'écriture avec un délai exponentiel :
 
-La fonction `loadRouteConfig()` tente de parser `route.config.ts`. Si elle échoue, elle affiche un warning et utilise une config vide.
+```
+⏳ File locked, retrying in 100ms... (1/3)
+```
 
 ## 📦 Dépendances
 
@@ -281,12 +327,3 @@ La fonction `loadRouteConfig()` tente de parser `route.config.ts`. Si elle écho
 
 - [`route.config.md`](./route.config.md) : Documentation de `route.config.ts`
 - [`router.md`](./router.md) : Documentation de `router.ts`
-- [`ROUTING-GUIDE.md`](../ROUTING-GUIDE.md) : Guide utilisateur complet
-
-## 💡 Améliorations futures
-
-- [ ] Support des routes dynamiques (`$id.tsx`)
-- [ ] Support des layouts imbriqués
-- [ ] Hot reload de `route.config.ts` sans redémarrage
-- [ ] Validation du schema TypeScript de `route.config.ts`
-- [ ] CLI pour créer des routes (`npm run route:new -- public about`)

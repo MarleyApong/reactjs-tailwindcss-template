@@ -11,27 +11,25 @@ export const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app',
 })
-
-export const dashboardRoute = createRoute({
+export const protectedDashboardRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: 'dashboard',
+  path: '/dashboard',
   component: Dashboard,
 })
-export const meRoute = createRoute({
+export const protectedMeRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: 'me',
+  path: '/me',
   component: Me,
 })
-export const profileRoute = createRoute({
+export const protectedProfileRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: 'profile',
+  path: '/profile',
   component: Profile,
 })
-export const settingsRoute = createRoute({
+export const protectedSettingsRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: 'settings',
+  path: '/settings',
   component: Settings,
 })
 
 // === AUTO-GENERATED ROUTES END ===
-
